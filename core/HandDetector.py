@@ -30,10 +30,17 @@ class HandDetector:
         self.result = result
 
     def detect(self, frame):
-        # MediaPipe benötigt RGB
+        # 1. Konvertierung von BGR (OpenCV) zu RGB (MediaPipe)
         rgb_frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+
+        # 2. mp.Image erstellen
+        # WICHTIG: Wir nutzen ImageFormat.SRGB
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+
         self.timestamp_counter += 1
+
+        # 3. Die detect_async Methode aufrufen
+        # Der Landmarker nutzt nun die Dimensionen aus dem mp_image Objekt
         self.landmarker.detect_async(mp_image, self.timestamp_counter)
 
     def get_all_hands(self):

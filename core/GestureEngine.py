@@ -40,9 +40,35 @@ class GestureEngine:
             (0, 0, 0, 0, 0): "FIST",
             (1, 0, 0, 0, 1): "HANG_LOOSE",
             (1, 1, 0, 0, 1): "ROCK N' ROLL",
+            (0, 0, 0, 0, 1): "PINKY"
         }
         return gestures.get(tuple(finger_list), "UNKNOWN")
 
     def calculate_dist(self, p1, p2):
         """Berechnet den euklidischen Abstand zwischen zwei Landmarks."""
         return math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2)
+
+    # In der GestureEngine Klasse
+
+    def get_pinch_distance(self, landmarks):
+        """Gibt den Abstand zwischen Daumen- und Zeigefingerspitze in Prozent zurück."""
+        # 1. Distanz zwischen Spitze 4 und 8
+        dist = self.calculate_dist(landmarks[4], landmarks[8])
+
+        # 2. Normierung (Referenz: Handfläche 0 bis 9)
+        # Ohne das wäre die Lautstärke davon abhängig, wie nah deine Hand an der Kamera ist.
+        palm_size = self.calculate_dist(landmarks[0], landmarks[9])
+
+        # 3. Den Wert "mappen" (Skalieren)
+        # Ein geschlossener Pinch ist etwa 0.2 * palm_size
+        # Ein weit offener Pinch ist etwa 1.5 * palm_size
+        # Wir nutzen die lineare Interpolation (Prozentrechnung)
+
+        normalized_dist = dist / palm_size
+
+        # Umrechnung in 0 bis 100% (Grobwerte, die man anpassen kann)
+        # Wir begrenzen den Wert zwischen 0.2 (0%) und 1.2 (100%)
+        percent = (normalized_dist - 0.2) / (1.2 - 0.2) * 100
+
+        # Sicherstellen, dass wir zwischen 0 und 100 bleiben
+        return max(0, min(100, int(percent)))
